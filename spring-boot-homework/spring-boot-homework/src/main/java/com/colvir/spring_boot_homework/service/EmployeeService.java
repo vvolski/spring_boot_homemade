@@ -54,12 +54,6 @@ public class EmployeeService {
         return employeeMapper.employeeToResponse(employeeRepository.update(updEmployee));
     }
 
-    public EmployeeResponse updateEmployeeDepartment(Integer employeeId, String departmentName) {
-        Employee updEmployee = getByIdEmployeeOrRaise(employeeId);
-        updEmployee.setDepartmentName(departmentName);
-        return employeeMapper.employeeToResponse(employeeRepository.update(updEmployee));
-    }
-
     public EmployeeResponse deleteEmployee(Integer id) {
         Employee delEmployee = getByIdEmployeeOrRaise(id);
         return employeeMapper.employeeToResponse(employeeRepository.delete(delEmployee.getId()));

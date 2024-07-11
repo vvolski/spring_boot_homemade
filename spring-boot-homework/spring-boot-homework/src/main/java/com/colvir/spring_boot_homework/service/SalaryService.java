@@ -10,19 +10,15 @@ import com.colvir.spring_boot_homework.mapper.PayOrdMapper;
 import com.colvir.spring_boot_homework.model.Employee;
 import com.colvir.spring_boot_homework.model.PayOrd;
 import com.colvir.spring_boot_homework.repository.PayOrdRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class SalaryService {
     private final EmployeeService employeeService;
     private final PayOrdMapper payOrdMapper;
     private final PayOrdRepository payOrdRepository;
-
-    SalaryService(EmployeeService employeeService, PayOrdMapper payOrdMapper, PayOrdRepository payOrdRepository) {
-        this.employeeService = employeeService;
-        this.payOrdMapper = payOrdMapper;
-        this.payOrdRepository = payOrdRepository;
-    }
 
     public PayOrd getByIdPayOrdOrRaise(Integer id) {
         PayOrd payOrd = payOrdRepository.getById(id);

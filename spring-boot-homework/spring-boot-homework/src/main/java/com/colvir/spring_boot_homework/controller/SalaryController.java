@@ -7,39 +7,39 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("salary")
+@RequestMapping("salaries")
 @RequiredArgsConstructor
 public class SalaryController {
 
     private final SalaryService salaryService;
 
-    @GetMapping("/getAll/")
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public PayOrdListResponse payOrdGetAll() {
         return salaryService.getAllPayOrd();
     }
 
-    @GetMapping("/getById/{payOrdId}")
+    @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public PayOrdResponse payOrdGetById(@PathVariable("payOrdId") Integer payOrdId) {
+    public PayOrdResponse payOrdGetById(@PathVariable("id") Integer payOrdId) {
         return salaryService.getByIdPayOrd(payOrdId);
     }
 
-    @PostMapping("/insert/")
+    @PostMapping
     @ResponseStatus(HttpStatus.OK)
     public PayOrdResponse payOrdInsert(@RequestBody PayOrdRequest request) {
         return salaryService.insertPayOrd(request);
     }
 
-    @PutMapping("/update/{payOrdId}")
+    @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public PayOrdResponse payOrdUpdate(@PathVariable("payOrdId") Integer payOrdId, @RequestBody PayOrdRequest request) {
+    public PayOrdResponse payOrdUpdate(@PathVariable("id") Integer payOrdId, @RequestBody PayOrdRequest request) {
         return salaryService.updatePayOrd(payOrdId, request);
     }
 
-    @DeleteMapping("/delete/{payOrdId}")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public PayOrdResponse payOrdDelete(@PathVariable("payOrdId") Integer payOrdId) {
+    public PayOrdResponse payOrdDelete(@PathVariable("id") Integer payOrdId) {
         return salaryService.deletePayOrd(payOrdId);
     }
 }

@@ -9,45 +9,39 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("employee")
+@RequestMapping("employees")
 @RequiredArgsConstructor
 public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    @GetMapping("/getAll/")
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public EmployeeListResponse employeeGetAll() {
         return employeeService.getAllEmployee();
     }
 
-    @GetMapping("/getById/{employeeId}")
+    @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public EmployeeResponse employeeGetById(@PathVariable("employeeId") Integer employeeId) {
+    public EmployeeResponse employeeGetById(@PathVariable("id") Integer employeeId) {
         return employeeService.getByIdEmployee(employeeId);
     }
 
-    @PostMapping("/insert/")
+    @PostMapping
     @ResponseStatus(HttpStatus.OK)
     public EmployeeResponse employeeInsert(@RequestBody EmployeeRequest request) {
         return employeeService.insertEmployee(request);
     }
 
-    @PutMapping("/update/{employeeId}")
+    @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public EmployeeResponse employeeUpdate(@PathVariable("employeeId") Integer employeeId, @RequestBody EmployeeRequest request) {
+    public EmployeeResponse employeeUpdate(@PathVariable("id") Integer employeeId, @RequestBody EmployeeRequest request) {
         return employeeService.updateEmployee(employeeId, request);
     }
 
-    @PutMapping("/changeDepartment/{employeeId}/{departmentName}")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public EmployeeResponse changeDepartment(@PathVariable("employeeId") Integer employeeId, @PathVariable("departmentName") String departmentName) {
-        return employeeService.updateEmployeeDepartment(employeeId, departmentName);
-    }
-
-    @DeleteMapping("/delete/{employeeId}")
-    @ResponseStatus(HttpStatus.OK)
-    public EmployeeResponse employeeDelete(@PathVariable("employeeId") Integer employeeId) {
+    public EmployeeResponse employeeDelete(@PathVariable("id") Integer employeeId) {
         return employeeService.deleteEmployee(employeeId);
     }
 }
