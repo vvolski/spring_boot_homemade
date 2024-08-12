@@ -1,39 +1,37 @@
 package com.colvir.spring_boot_homework.repository;
 
 import com.colvir.spring_boot_homework.model.Employee;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 @Repository
+@Transactional
+@RequiredArgsConstructor
 public class EmployeeRepository {
-    private final Set<Employee> employees = new HashSet<>();
-
-    private final Random randomId = new Random();
-
-    public Integer genId() {
-        // Эмуляция сиквенса
-        return randomId.nextInt(1, Integer.MAX_VALUE);
-    }
+    private final SessionFactory sessionFactory;
 
     public List<Employee> getAll() {
-        return new ArrayList<>(employees);
+        return sessionFactory.getCurrentSession().createQuery("select e from Employee e", Employee.class).getResultList();
     }
 
     public Employee getById(Integer id) {
-        return employees.stream()
-                .filter(employee -> employee.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        if (id == null) {
+           return null;
+        }
+        return sessionFactory.getCurrentSession().get(Employee.class, id);
     }
 
     public Employee insert(Employee employee) {
-        employee.setId(genId());
-        employees.add(employee);
+        sessionFactory.getCurrentSession().persist(employee);
         return employee;
     }
 
     public Employee update(Employee employee) {
-        Employee employeeUpd = getById(employee.getId());
+        Employee employeeUpd = sessionFactory.getCurrentSession().get(Employee.class, employee.getId());
         employeeUpd.setFirstName(employee.getFirstName());
         employeeUpd.setLastName(employee.getLastName());
         employeeUpd.setDepartmentName(employee.getDepartmentName());
@@ -41,10 +39,10 @@ public class EmployeeRepository {
     }
 
     public Employee delete(Integer id) {
-        Employee employeeDel = employees.stream()
-                .filter(employee -> employee.getId().equals(id))
-                .findFirst().get();
-        employees.remove(employeeDel);
+        Session session = sessionFactory.getCurrentSession();
+
+        Employee employeeDel = session.get(Employee.class, id);
+        session.remove(employeeDel);
         return employeeDel;
     }
 }
