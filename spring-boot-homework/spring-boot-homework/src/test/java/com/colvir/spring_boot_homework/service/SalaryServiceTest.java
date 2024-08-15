@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 // Текущий тест с использованием Мок
-
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         SalaryService.class,

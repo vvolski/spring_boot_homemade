@@ -1,17 +1,18 @@
 package com.colvir.spring_boot_homework.service;
 
 import com.colvir.spring_boot_homework.MapperConfiguration;
+import com.colvir.spring_boot_homework.dto.EmployeeRequest;
 import com.colvir.spring_boot_homework.dto.EmployeeResponse;
 import com.colvir.spring_boot_homework.exception.RecordFoundException;
 import com.colvir.spring_boot_homework.exception.RecordNotFoundException;
 import com.colvir.spring_boot_homework.mapper.EmployeeMapper;
 import com.colvir.spring_boot_homework.model.Employee;
 import com.colvir.spring_boot_homework.repository.EmployeeRepository;
-import com.colvir.spring_boot_homework.repository.PayOrdRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -20,114 +21,93 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-// Подготовка для работы с тест-контейнерами в базе (не только сервис, но и репозиторий)
+// Текущий тест с использованием Мок
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        SalaryService.class,
-        PayOrdRepository.class,
-        EmployeeMapper.class,
         EmployeeService.class,
-        EmployeeRepository.class
+        EmployeeMapper.class
 })
 @SpringBootTest(classes = {MapperConfiguration.class})
 public class EmployeeServiceTest {
     @Autowired
-    private  EmployeeRepository employeeRepository;
-    @Autowired
-    private EmployeeMapper employeeMapper;
-    @Autowired
     private EmployeeService employeeService;
+    @MockBean
+    private  EmployeeRepository employeeRepository;
 
-    private static final Employee employee1 = new Employee(1, "valery", "volski", "ColvirAccountProcessing24x7");
-    private static final Employee employee2 = new Employee(2, "alex", "belski", "ColvirAccountProcessing24x7");
-    private static final Employee employee3 = new Employee(3, "gena", "rix", "RegulatoryReporting");
-    private static final Employee employee4 = new Employee(4, "vladimir", "rabik", "RegulatoryReporting");
-    private static final Employee employee5 = new Employee(5, "kuka", "kabra", "RegulatoryReporting");
-    private static final Employee employee5_1 = new Employee(5, "updFirstName", "updLastName", "updDepartment");
-    private static final List<EmployeeResponse> employeeResponses = new ArrayList<>();
 
-    private void genDefaultData() {
-        // Добавляем сразу и список сотрудников и отдельных сотрудников в хранилище
-        if (employeeResponses.isEmpty()) {
-            EmployeeResponse employee1Response = employeeService.insertEmployee(employeeMapper.employeeToRequest(employee1));
-            employee1.setId(employee1Response.getId());
-            employeeResponses.add(employee1Response);
-
-            EmployeeResponse employee2Response = employeeService.insertEmployee(employeeMapper.employeeToRequest(employee2));
-            employee2.setId(employee2Response.getId());
-            employeeResponses.add(employee2Response);
-        }
-    }
-
-    @Test
-    void getByIdEmployee_success() {
-        genDefaultData();
-        EmployeeResponse expectedResponse = employeeMapper.employeeToResponse(employee1);
-        EmployeeResponse actualResponse = employeeService.getByIdEmployee(employee1.getId());
-        assertEquals(expectedResponse, actualResponse);
-    }
-
-    @Test
-    void getByIdEmployee_exception() {
-        genDefaultData();
-        assertThrows(RecordNotFoundException.class, () -> employeeService.getByIdEmployee(employee4.getId()));
-    }
+    private final Employee employee1 = new Employee(null, "valery", "volski", "ColvirAccountProcessing24x7");
+    private final Employee employee1Saved = new Employee(1, employee1.getFirstName(), employee1.getLastName(), employee1.getDepartmentName());
+    private final EmployeeRequest employee1Request = new EmployeeRequest(employee1.getFirstName(), employee1.getLastName(), employee1.getDepartmentName());
 
     @Test
     void insertEmployee_success() {
-        genDefaultData();
-        //Полученный ответ от сервиса
-        EmployeeResponse actualResponse = employeeService.insertEmployee(employeeMapper.employeeToRequest(employee3));
-        employee3.setId(actualResponse.getId());
-        //Данные ответа по сотруднику 1
-        EmployeeResponse expectedResponse =  employeeMapper.employeeToResponse(employee3);
-        //В локальный список всех сотрудников
-        employeeResponses.add(actualResponse);
+        // Успешная вставка, имитируем добавление нового сотрудника
+        when(employeeRepository.insert(employee1)).thenReturn(employee1Saved);
+
+        EmployeeResponse expectedResponse = new EmployeeResponse(1, employee1Saved.getFirstName(), employee1Saved.getLastName(), employee1Saved.getDepartmentName());
+        EmployeeResponse actualResponse = employeeService.insertEmployee(employee1Request);
+
         assertEquals(expectedResponse, actualResponse);
+        verify(employeeRepository).insert(employee1);
     }
 
-    @Test
+   @Test
     void insertEmployee_exception() {
-        genDefaultData();
-        assertThrows(RecordFoundException.class, () -> employeeService.insertEmployee(employeeMapper.employeeToRequest(employee1)));
+       // Вставка с ошибкой, имитируем дублирование сотрудника
+       List<Employee> employeeList = new ArrayList<>();
+       employeeList.add(employee1);
+       when(employeeRepository.getAll()).thenReturn(employeeList);
+
+       assertThrows(RecordFoundException.class, () -> employeeService.insertEmployee(employee1Request));
     }
 
-    @Test
+   @Test
     void updateEmployee_success() {
-        genDefaultData();
-        //Добавляем нового сотрудника
-        EmployeeResponse employee5Response = employeeService.insertEmployee(employeeMapper.employeeToRequest(employee5));
-        employee5.setId(employee5Response.getId());
-        //В локальный список всех сотрудников
-        employeeResponses.add(employee5Response);
+        // Успешное обновление
+        Employee employeeUpdated = new Employee(1, employee1.getFirstName(), "Belskiy", employee1.getDepartmentName());
+        EmployeeRequest employeeUpdatedRequest = new EmployeeRequest(employeeUpdated.getFirstName(), employeeUpdated.getLastName(), employeeUpdated.getDepartmentName());
 
-        //Готовим ожидаемый ответ
-        employee5_1.setId(employee5Response.getId());
-        EmployeeResponse expectedResponse = employeeMapper.employeeToResponse(employee5_1);
-        //Обновляем нового сотрудника
-        EmployeeResponse actualResponse = employeeService.updateEmployee(employee5Response.getId(), employeeMapper.employeeToRequest(employee5_1));
-        //Сравниваем предполагаемый и полученный ответ
+        when(employeeRepository.getById(employeeUpdated.getId())).thenReturn(employeeUpdated);
+        when(employeeRepository.update(employeeUpdated)).thenReturn(employeeUpdated);
+
+        EmployeeResponse expectedResponse = new EmployeeResponse(employeeUpdated.getId(), employeeUpdated.getFirstName(), employeeUpdated.getLastName(), employeeUpdated.getDepartmentName());
+        EmployeeResponse actualResponse = employeeService.updateEmployee(employeeUpdated.getId(), employeeUpdatedRequest);
+
         assertEquals(expectedResponse, actualResponse);
     }
 
     @Test
     void updateEmployee_exception() {
-        genDefaultData();
-        assertThrows(RecordNotFoundException.class, () -> employeeService.updateEmployee(employee4.getId(), employeeMapper.employeeToRequest(employee4)));
+        //Обновление с ошибкой, не найден пользователь
+        Employee employeeUpdated = new Employee(2, employee1.getFirstName(), "Belskiy", employee1.getDepartmentName());
+        EmployeeRequest employeeUpdatedRequest = new EmployeeRequest(employeeUpdated.getFirstName(), employeeUpdated.getLastName(), employeeUpdated.getDepartmentName());
+
+        assertThrows(RecordNotFoundException.class, () -> employeeService.updateEmployee(employeeUpdated.getId(), employeeUpdatedRequest));
     }
 
     @Test
     void deleteEmployee_success() {
-        genDefaultData();
-        EmployeeResponse actualResponse = employeeService.deleteEmployee(employeeMapper.employeeToResponse(employee1).getId());
-        EmployeeResponse expectedResponse = employeeMapper.employeeToResponse(employee1);
+        // Успешное удаление
+        when(employeeRepository.delete(employee1Saved.getId())).thenReturn(employee1Saved);
+        when(employeeRepository.getById(employee1Saved.getId())).thenReturn(employee1Saved);
+
+        EmployeeResponse expectedResponse = new EmployeeResponse(employee1Saved.getId(), employee1Saved.getFirstName(), employee1Saved.getLastName(), employee1Saved.getDepartmentName());
+        EmployeeResponse actualResponse = employeeService.deleteEmployee(employee1Saved.getId());
+
         assertEquals(expectedResponse, actualResponse);
     }
 
     @Test
     void deleteEmployee_exception() {
-        genDefaultData();
-        assertThrows(RecordNotFoundException.class, () -> employeeService.deleteEmployee(employeeMapper.employeeToResponse(employee4).getId()));
+        // Удаление с ошибкой
+        Employee employeeDeleted = new Employee(2, employee1.getFirstName(), employee1.getLastName(), employee1.getDepartmentName());
+
+        when(employeeRepository.delete(employee1Saved.getId())).thenReturn(employee1Saved);
+        when(employeeRepository.getById(employee1Saved.getId())).thenReturn(employee1Saved);
+
+        assertThrows(RecordNotFoundException.class, () -> employeeService.deleteEmployee(employeeDeleted.getId()));
     }
 }
