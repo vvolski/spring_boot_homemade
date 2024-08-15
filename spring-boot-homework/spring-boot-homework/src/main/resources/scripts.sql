@@ -1,9 +1,9 @@
 create table employees
 (
-    id             integer not null constraint employees_pk primary key,
-    firstName      text    not null,
-    lastName       text    not null,
-    departmentName text    not null
+    id              integer not null constraint employees_pk primary key,
+    first_Name      text    not null,
+    last_Name       text    not null,
+    department_Name text    not null
 );
 alter table employees owner to postgres;
 
@@ -12,12 +12,12 @@ alter sequence employees_sequence owner to postgres;
 
 create table payOrds
 (
-    id            integer not null constraint payOrds_pk primary key,
-    employeeId    integer not null,
-    date          date    not null,
-    sum           real    not null,
-    salaryDate    date    not null,
-    FOREIGN KEY (employeeId) REFERENCES employees (id)
+    id             integer not null constraint payOrds_pk primary key,
+    employee_Id    integer not null,
+    date           date    not null,
+    sum            real    not null,
+    salary_Date    date    not null,
+    FOREIGN KEY (employee_Id) REFERENCES employees (id)
 );
 alter table payOrds
     owner to postgres;
