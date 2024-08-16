@@ -18,6 +18,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,13 +46,13 @@ public class EmployeeServiceTest {
     @Test
     void insertEmployee_success() {
         // Успешная вставка, имитируем добавление нового сотрудника
-        when(employeeRepository.insert(employee1)).thenReturn(employee1Saved);
+        when(employeeRepository.save(employee1)).thenReturn(employee1Saved);
 
         EmployeeResponse expectedResponse = new EmployeeResponse(1, employee1Saved.getFirstName(), employee1Saved.getLastName(), employee1Saved.getDepartmentName());
         EmployeeResponse actualResponse = employeeService.insertEmployee(employee1Request);
 
         assertEquals(expectedResponse, actualResponse);
-        verify(employeeRepository).insert(employee1);
+        verify(employeeRepository).save(employee1);
     }
 
    @Test
@@ -59,7 +60,7 @@ public class EmployeeServiceTest {
        // Вставка с ошибкой, имитируем дублирование сотрудника
        List<Employee> employeeList = new ArrayList<>();
        employeeList.add(employee1);
-       when(employeeRepository.getAll()).thenReturn(employeeList);
+       when(employeeRepository.findAll()).thenReturn(employeeList);
 
        assertThrows(RecordFoundException.class, () -> employeeService.insertEmployee(employee1Request));
     }
@@ -70,8 +71,8 @@ public class EmployeeServiceTest {
         Employee employeeUpdated = new Employee(1, employee1.getFirstName(), "Belskiy", employee1.getDepartmentName());
         EmployeeRequest employeeUpdatedRequest = new EmployeeRequest(employeeUpdated.getFirstName(), employeeUpdated.getLastName(), employeeUpdated.getDepartmentName());
 
-        when(employeeRepository.getById(employeeUpdated.getId())).thenReturn(employeeUpdated);
-        when(employeeRepository.update(employeeUpdated)).thenReturn(employeeUpdated);
+        when(employeeRepository.findById(employeeUpdated.getId())).thenReturn(Optional.of(employeeUpdated));
+        when(employeeRepository.save(employeeUpdated)).thenReturn(employeeUpdated);
 
         EmployeeResponse expectedResponse = new EmployeeResponse(employeeUpdated.getId(), employeeUpdated.getFirstName(), employeeUpdated.getLastName(), employeeUpdated.getDepartmentName());
         EmployeeResponse actualResponse = employeeService.updateEmployee(employeeUpdated.getId(), employeeUpdatedRequest);
@@ -91,8 +92,7 @@ public class EmployeeServiceTest {
     @Test
     void deleteEmployee_success() {
         // Успешное удаление
-        when(employeeRepository.delete(employee1Saved.getId())).thenReturn(employee1Saved);
-        when(employeeRepository.getById(employee1Saved.getId())).thenReturn(employee1Saved);
+        when(employeeRepository.findById(employee1Saved.getId())).thenReturn(Optional.of(employee1Saved));
 
         EmployeeResponse expectedResponse = new EmployeeResponse(employee1Saved.getId(), employee1Saved.getFirstName(), employee1Saved.getLastName(), employee1Saved.getDepartmentName());
         EmployeeResponse actualResponse = employeeService.deleteEmployee(employee1Saved.getId());
@@ -105,8 +105,7 @@ public class EmployeeServiceTest {
         // Удаление с ошибкой
         Employee employeeDeleted = new Employee(2, employee1.getFirstName(), employee1.getLastName(), employee1.getDepartmentName());
 
-        when(employeeRepository.delete(employee1Saved.getId())).thenReturn(employee1Saved);
-        when(employeeRepository.getById(employee1Saved.getId())).thenReturn(employee1Saved);
+        when(employeeRepository.findById(employee1Saved.getId())).thenReturn(Optional.of(employee1Saved));
 
         assertThrows(RecordNotFoundException.class, () -> employeeService.deleteEmployee(employeeDeleted.getId()));
     }

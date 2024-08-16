@@ -20,6 +20,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,13 +52,13 @@ public class SalaryServiceTest {
     void insertPayOrd_success() {
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
         //Нужна для того, чтобы получить payOrd с идентификатором
-        when(payOrdRepository.insert(payOrd1)).thenReturn(payOrd1Saved);
+        when(payOrdRepository.save(payOrd1)).thenReturn(payOrd1Saved);
 
         PayOrdResponse expectedResponse = new PayOrdResponse(payOrd1Saved.getId(), payOrd1Saved.getEmployeeId(), payOrd1Saved.getDate(), payOrd1Saved.getSum(), payOrd1Saved.getSalaryDate());
         PayOrdResponse actualResponse = salaryService.insertPayOrd(payOrd1Request);
 
         assertEquals(expectedResponse, actualResponse);
-        verify(payOrdRepository).insert(payOrd1);
+        verify(payOrdRepository).save(payOrd1);
     }
 
     @Test
@@ -74,7 +75,7 @@ public class SalaryServiceTest {
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
         List<PayOrd> payOrdList = new ArrayList<>();
         payOrdList.add(payOrd1);
-        when(payOrdRepository.getAll()).thenReturn(payOrdList);
+        when(payOrdRepository.findAll()).thenReturn(payOrdList);
         assertThrows(RecordFoundException.class, () -> salaryService.insertPayOrd(payOrd1Request));
     }
 
@@ -84,14 +85,14 @@ public class SalaryServiceTest {
         PayOrdRequest payOrd1UpdatedRequest = new PayOrdRequest(payOrd1Updated.getEmployeeId(), payOrd1Updated.getDate(), payOrd1Updated.getSum());
 
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
-        when(payOrdRepository.getById(payOrd1Updated.getId())).thenReturn(payOrd1Updated);
-        when(payOrdRepository.update(payOrd1Updated)).thenReturn(payOrd1Updated);
+        when(payOrdRepository.findById(payOrd1Updated.getId())).thenReturn(Optional.of(payOrd1Updated));
+        when(payOrdRepository.save(payOrd1Updated)).thenReturn(payOrd1Updated);
 
         PayOrdResponse expectedResponse = new PayOrdResponse(payOrd1Updated.getId(), payOrd1Updated.getEmployeeId(), payOrd1Updated.getDate(), payOrd1Updated.getSum(), payOrd1Updated.getSalaryDate());
         PayOrdResponse actualResponse = salaryService.updatePayOrd(payOrd1Updated.getId(), payOrd1UpdatedRequest);
 
         assertEquals(expectedResponse, actualResponse);
-        verify(payOrdRepository).update(payOrd1Updated);
+        verify(payOrdRepository).save(payOrd1Updated);
     }
 
     @Test
@@ -101,8 +102,8 @@ public class SalaryServiceTest {
         PayOrdRequest payOrd1UpdatedRequest = new PayOrdRequest(employee2.getId(), payOrd1Saved.getDate(), 7000.00);
 
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
-        when(payOrdRepository.getById(payOrd1Saved.getId())).thenReturn(payOrd1Saved);
-        when(payOrdRepository.update(payOrd1Updated)).thenReturn(payOrd1Updated);
+        when(payOrdRepository.findById(payOrd1Saved.getId())).thenReturn(Optional.of(payOrd1Saved));
+        when(payOrdRepository.save(payOrd1Updated)).thenReturn(payOrd1Updated);
 
         assertThrows(GeneralException.class, () -> salaryService.updatePayOrd(payOrd1Updated.getId(), payOrd1UpdatedRequest));
     }
@@ -114,8 +115,8 @@ public class SalaryServiceTest {
         PayOrdRequest payOrd1UpdatedRequest = new PayOrdRequest(payOrd1Saved.getId(), payOrd1Saved.getDate(), 0.00);
 
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
-        when(payOrdRepository.getById(payOrd1Saved.getId())).thenReturn(payOrd1Saved);
-        when(payOrdRepository.update(payOrd1Updated)).thenReturn(payOrd1Updated);
+        when(payOrdRepository.findById(payOrd1Saved.getId())).thenReturn(Optional.of(payOrd1Saved));
+        when(payOrdRepository.save(payOrd1Updated)).thenReturn(payOrd1Updated);
 
         assertThrows(GeneralException.class, () -> salaryService.updatePayOrd(payOrd1Updated.getId(), payOrd1UpdatedRequest));
     }
@@ -129,9 +130,9 @@ public class SalaryServiceTest {
         payOrdList.add(payOrd2Saved);
 
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
-        when(payOrdRepository.getAll()).thenReturn(payOrdList);
-        when(payOrdRepository.getById(payOrd1Saved.getId())).thenReturn(payOrd1Saved);
-        when(payOrdRepository.update(payOrd1Saved)).thenReturn(payOrd1Saved);
+        when(payOrdRepository.findAll()).thenReturn(payOrdList);
+        when(payOrdRepository.findById(payOrd1Saved.getId())).thenReturn(Optional.of(payOrd1Saved));
+        when(payOrdRepository.save(payOrd1Saved)).thenReturn(payOrd1Saved);
 
         assertThrows(RecordFoundException.class, () -> salaryService.updatePayOrd(payOrd1Saved.getId(), payOrd2SavedRequest));
     }

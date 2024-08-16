@@ -19,11 +19,9 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
 
     public Employee getByIdEmployeeOrRaise(Integer id) {
-        Employee employee = employeeRepository.getById(id);
-        if (employee == null) {
-            throw new RecordNotFoundException(String.format("Сотрудник с идентификатором [ %s ] не найден", id));
-        }
-        return employee;
+        return employeeRepository.findById(id).
+                orElseThrow(()-> new RecordNotFoundException(
+                        String.format("Сотрудник с идентификатором [ %s ] не найден", id)));
     }
 
     public EmployeeResponse getByIdEmployee(Integer id) {
@@ -31,12 +29,12 @@ public class EmployeeService {
     }
 
     public EmployeeListResponse getAllEmployee() {
-        return employeeMapper.employeeListToResponse(employeeRepository.getAll());
+        return employeeMapper.employeeListToResponse(employeeRepository.findAll());
     }
 
     public EmployeeResponse insertEmployee(EmployeeRequest request) {
         Employee insEmployee = employeeMapper.requestToEmployee(request);
-        for (Employee employees : employeeRepository.getAll()) {
+        for (Employee employees : employeeRepository.findAll()) {
             if (employees.getFirstName().equals(insEmployee.getFirstName()) &&
                     employees.getLastName().equals(insEmployee.getLastName())) {
                 throw new RecordFoundException(String.format("Сотрудник [ %s %s ] уже работает в подразделении [ %s ]",
@@ -45,17 +43,18 @@ public class EmployeeService {
                         insEmployee.getDepartmentName()));
             }
         }
-        return employeeMapper.employeeToResponse(employeeRepository.insert(insEmployee));
+        return employeeMapper.employeeToResponse(employeeRepository.save(insEmployee));
     }
 
     public EmployeeResponse updateEmployee(Integer id, EmployeeRequest request) {
         Employee updEmployee = employeeMapper.requestToEmployee(request);
         updEmployee.setId(getByIdEmployeeOrRaise(id).getId());
-        return employeeMapper.employeeToResponse(employeeRepository.update(updEmployee));
+        return employeeMapper.employeeToResponse(employeeRepository.save(updEmployee));
     }
 
     public EmployeeResponse deleteEmployee(Integer id) {
         Employee delEmployee = getByIdEmployeeOrRaise(id);
-        return employeeMapper.employeeToResponse(employeeRepository.delete(delEmployee.getId()));
+        employeeRepository.deleteById(delEmployee.getId());
+        return employeeMapper.employeeToResponse(delEmployee);
     }
 }

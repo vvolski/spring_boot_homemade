@@ -21,15 +21,13 @@ public class SalaryService {
     private final PayOrdRepository payOrdRepository;
 
     public PayOrd getByIdPayOrdOrRaise(Integer id) {
-        PayOrd payOrd = payOrdRepository.getById(id);
-        if (payOrd == null) {
-            throw new RecordNotFoundException(String.format("Выплата с идентификатором [ %s ] не найдена", id));
-        }
-        return payOrd;
+        return payOrdRepository.findById(id).
+                orElseThrow(()-> new RecordNotFoundException(
+                        String.format("Выплата с идентификатором [ %s ] не найдена", id)));
     }
 
     public PayOrdListResponse getAllPayOrd() {
-        return payOrdMapper.payOrdListToResponse(payOrdRepository.getAll());
+        return payOrdMapper.payOrdListToResponse(payOrdRepository.findAll());
     }
 
     public PayOrdResponse getByIdPayOrd(Integer id) {
@@ -47,7 +45,7 @@ public class SalaryService {
         //Рассчитали первый день месяца для выплаты и заполнили поле документа
         newPayOrd.setSalaryDate(newPayOrd.getDate().withDayOfMonth(1));
         //Проверили, что такому сотруднику выплат за этот месяц не производилось
-        for (PayOrd payOrds : payOrdRepository.getAll()) {
+        for (PayOrd payOrds : payOrdRepository.findAll()) {
             //Если сотрудник есть в репозитории и дата выплаты репозитория равна дате новой выплаты - ругаемся
             if (employeeOfPayOrd.getId().equals(payOrds.getEmployeeId()) &&
                     payOrds.getSalaryDate().equals(newPayOrd.getSalaryDate())) {
@@ -57,7 +55,7 @@ public class SalaryService {
                         newPayOrd.getSalaryDate()));
             }
         }
-        return payOrdMapper.payOrdToResponse(payOrdRepository.insert(newPayOrd));
+        return payOrdMapper.payOrdToResponse(payOrdRepository.save(newPayOrd));
     }
 
     public PayOrdResponse updatePayOrd(Integer id, PayOrdRequest request) {
@@ -75,7 +73,7 @@ public class SalaryService {
         newPayOrd.setSalaryDate(newPayOrd.getDate().withDayOfMonth(1));
         //Если дата выплаты при обновлении поменялась, проверяем возможные конфликты целостности данных
         if (!oldPayOrd.getSalaryDate().equals(newPayOrd.getSalaryDate())) {
-            for (PayOrd payOrds : payOrdRepository.getAll()) {
+            for (PayOrd payOrds : payOrdRepository.findAll()) {
                 if (!newPayOrd.getId().equals(payOrds.getId())&&
                         newPayOrd.getEmployeeId().equals(payOrds.getEmployeeId())&&
                         newPayOrd.getSalaryDate().equals(payOrds.getSalaryDate())) {
@@ -86,10 +84,12 @@ public class SalaryService {
                 }
             }
         }
-        return payOrdMapper.payOrdToResponse(payOrdRepository.update(newPayOrd));
+        return payOrdMapper.payOrdToResponse(payOrdRepository.save(newPayOrd));
     }
 
     public PayOrdResponse deletePayOrd(Integer id) {
-        return payOrdMapper.payOrdToResponse(payOrdRepository.delete(getByIdPayOrdOrRaise(id).getId()));
+        PayOrd payOrd = getByIdPayOrdOrRaise(id);
+        payOrdRepository.deleteById(payOrd.getId());
+        return payOrdMapper.payOrdToResponse(payOrd);
     }
 }
