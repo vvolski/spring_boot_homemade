@@ -9,9 +9,12 @@ import com.colvir.spring_boot_homework.exception.RecordNotFoundException;
 import com.colvir.spring_boot_homework.mapper.PayOrdMapper;
 import com.colvir.spring_boot_homework.model.Employee;
 import com.colvir.spring_boot_homework.model.PayOrd;
+import com.colvir.spring_boot_homework.repository.PayOrdCacheRepository;
 import com.colvir.spring_boot_homework.repository.PayOrdRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,11 +22,21 @@ public class SalaryService {
     private final EmployeeService employeeService;
     private final PayOrdMapper payOrdMapper;
     private final PayOrdRepository payOrdRepository;
+    private final PayOrdCacheRepository payOrdCacheRepository;
 
     public PayOrd getByIdPayOrdOrRaise(Integer id) {
-        return payOrdRepository.findById(id).
-                orElseThrow(()-> new RecordNotFoundException(
-                        String.format("Выплата с идентификатором [ %s ] не найдена", id)));
+        //Попытка чтения выплаты из кэшированных значений
+        Optional<PayOrd> payOrdFromCache = payOrdCacheRepository.findById(id);
+        if (payOrdFromCache.isPresent()) {
+            return payOrdFromCache.get();
+        } else {
+            //Попытка чтения выплаты из базы данны и сохранение в кэш
+            PayOrd payOrdFromDb = payOrdRepository.findById(id).
+                    orElseThrow(()-> new RecordNotFoundException(
+                            String.format("Выплата с идентификатором [ %s ] не найдена", id)));
+            payOrdCacheRepository.save(payOrdFromDb);
+            return payOrdFromDb;
+        }
     }
 
     public PayOrdListResponse getAllPayOrd() {

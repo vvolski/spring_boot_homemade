@@ -8,6 +8,7 @@ import com.colvir.spring_boot_homework.exception.RecordFoundException;
 import com.colvir.spring_boot_homework.mapper.PayOrdMapper;
 import com.colvir.spring_boot_homework.model.Employee;
 import com.colvir.spring_boot_homework.model.PayOrd;
+import com.colvir.spring_boot_homework.repository.PayOrdCacheRepository;
 import com.colvir.spring_boot_homework.repository.PayOrdRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +39,8 @@ public class SalaryServiceTest {
     private SalaryService salaryService;
     @MockBean
     private PayOrdRepository payOrdRepository;
+    @MockBean
+    private PayOrdCacheRepository payOrdCacheRepository;
     @MockBean
     private EmployeeService employeeService;
 
@@ -85,6 +88,7 @@ public class SalaryServiceTest {
         PayOrdRequest payOrd1UpdatedRequest = new PayOrdRequest(payOrd1Updated.getEmployeeId(), payOrd1Updated.getDate(), payOrd1Updated.getSum());
 
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
+        when(payOrdCacheRepository.findById(any())).thenReturn(Optional.empty());
         when(payOrdRepository.findById(payOrd1Updated.getId())).thenReturn(Optional.of(payOrd1Updated));
         when(payOrdRepository.save(payOrd1Updated)).thenReturn(payOrd1Updated);
 
@@ -102,6 +106,7 @@ public class SalaryServiceTest {
         PayOrdRequest payOrd1UpdatedRequest = new PayOrdRequest(employee2.getId(), payOrd1Saved.getDate(), 7000.00);
 
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
+        when(payOrdCacheRepository.findById(any())).thenReturn(Optional.empty());
         when(payOrdRepository.findById(payOrd1Saved.getId())).thenReturn(Optional.of(payOrd1Saved));
         when(payOrdRepository.save(payOrd1Updated)).thenReturn(payOrd1Updated);
 
@@ -115,6 +120,7 @@ public class SalaryServiceTest {
         PayOrdRequest payOrd1UpdatedRequest = new PayOrdRequest(payOrd1Saved.getId(), payOrd1Saved.getDate(), 0.00);
 
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
+        when(payOrdCacheRepository.findById(any())).thenReturn(Optional.empty());
         when(payOrdRepository.findById(payOrd1Saved.getId())).thenReturn(Optional.of(payOrd1Saved));
         when(payOrdRepository.save(payOrd1Updated)).thenReturn(payOrd1Updated);
 
@@ -131,6 +137,7 @@ public class SalaryServiceTest {
 
         when(employeeService.getByIdEmployeeOrRaise(employee1.getId())).thenReturn(employee1);
         when(payOrdRepository.findAll()).thenReturn(payOrdList);
+        when(payOrdCacheRepository.findById(any())).thenReturn(Optional.empty());
         when(payOrdRepository.findById(payOrd1Saved.getId())).thenReturn(Optional.of(payOrd1Saved));
         when(payOrdRepository.save(payOrd1Saved)).thenReturn(payOrd1Saved);
 
